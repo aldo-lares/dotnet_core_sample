@@ -85,8 +85,22 @@ namespace pipelines_dotnet_core.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult TriggerError()
         {
-            throw new InvalidOperationException(
-                "Pampa - Dashboard Error en HomeController.TriggerError: excepción intencional para monitoreo en App Insights.");
+            try
+            {
+                throw new InvalidOperationException(
+                    "Pampa - Dashboard Error en HomeController.TriggerError: excepción intencional para monitoreo en App Insights.");
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    { "location", "HomeController.TriggerError" },
+                    { "requestPath", HttpContext?.Request?.Path.Value ?? string.Empty },
+                    { "marker", "Pampa" }
+                });
+
+                return StatusCode(500);
+            }
         }
 
         private static string GenerateSessionId()

@@ -157,13 +157,13 @@
         })
         .then(function(response) {
             if (!response.ok) {
-                throw { type: response.status >= 500 ? 'backend-error' : 'unexpected-status' };
+                var error = new Error('Request failed');
+                error.type = response.status >= 500 ? 'backend-error' : 'unexpected-status';
+                throw error;
             }
-            return response.text();
-        })
-        .then(function() {
-            resultEl.textContent = 'Error endpoint returned successfully.';
-            resultEl.classList.add('result-success');
+            var unexpected = new Error('TriggerError endpoint returned success unexpectedly');
+            unexpected.type = 'unexpected-success';
+            throw unexpected;
         })
         .catch(function(error) {
             if (error && error.type === 'backend-error') {
