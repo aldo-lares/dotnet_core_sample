@@ -48,9 +48,7 @@ namespace pipelines_dotnet_core.Controllers
             var instanceId = Environment.GetEnvironmentVariable(EnvInstanceId)
                 ?? Environment.GetEnvironmentVariable(EnvSiteName)
                 ?? "localhost";
-            ViewData["InstanceName"] = instanceId.Length > 6
-                ? instanceId.Substring(instanceId.Length - 6)
-                : instanceId;
+            ViewData["InstanceName"] = instanceId.Length > 6 ? instanceId[^6..] : instanceId;
             return View();
         }
 
