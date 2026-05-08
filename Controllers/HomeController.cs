@@ -96,6 +96,49 @@ namespace pipelines_dotnet_core.Controllers
             return new string(chars);
         }
 
+        [HttpGet("/simulate-load")]
+        public async Task<IActionResult> SimulateLoad(
+            [FromQuery] int cpu = 50,
+            [FromQuery] int memory = 100,
+            [FromQuery] int duration = 30)
+        {
+            var cts = new System.Threading.CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromSeconds(duration));
+            var token = cts.Token;
+
+            int threadCount = Math.Max(1, Environment.ProcessorCount * cpu / 100);
+            var cpuTasks = new Task[threadCount];
+            for (int i = 0; i < threadCount; i++)
+            {
+                cpuTasks[i] = Task.Run(() =>
+                {
+                    while (!token.IsCancellationRequested)
+                    {
+                        using (var sha = System.Security.Cryptography.SHA256.Create())
+                        {
+                            sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()));
+                        }
+                    }
+                }, token);
+            }
+
+            var memoryBlocks = new List<byte[]>();
+            for (int i = 0; i < memory; i++)
+            {
+                memoryBlocks.Add(new byte[1024 * 1024]);
+            }
+
+            await Task.WhenAll(cpuTasks.Select(t => t.ContinueWith(_ => { }, TaskContinuationOptions.None)));
+
+            memoryBlocks.Clear();
+            cts.Dispose();
+
+            return Json(new
+            {
+                message = $"Simulation complete: ran for {duration}s using ~{cpu}% CPU on {threadCount} thread(s) and {memory} MB of memory."
+            });
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

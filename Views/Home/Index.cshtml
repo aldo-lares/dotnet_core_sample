@@ -23,9 +23,11 @@
         <div class="card-result"></div>
     </div>
     <div class="dashboard-card">
-        <div class="card-title">Users</div>
-        <div class="card-description">Manage user accounts</div>
-        <button class="card-btn" disabled>Manage</button>
+        <div class="card-title">Load Simulator</div>
+        <div class="card-description">Simulate CPU and memory load for testing</div>
+        <input class="card-input" id="sim-duration" type="number" min="1" placeholder="Duration (seconds)">
+        <input class="card-input" id="sim-memory" type="number" min="1" placeholder="Memory (MB)">
+        <button class="card-btn" onclick="handleSimulateLoad(this)">Run Simulation</button>
         <div class="card-result"></div>
     </div>
     <div class="dashboard-card">
@@ -134,6 +136,34 @@
         .finally(function() {
             btn.disabled = false;
             btn.textContent = 'Start Session';
+        });
+    }
+
+    function handleSimulateLoad(btn) {
+        var card = btn.closest('.dashboard-card');
+        var resultEl = card.querySelector('.card-result');
+        var duration = document.getElementById('sim-duration').value || 30;
+        var memory = document.getElementById('sim-memory').value || 100;
+        var cpu = 50;
+
+        btn.disabled = true;
+        btn.textContent = 'Running…';
+        resultEl.className = 'card-result';
+        resultEl.textContent = '';
+
+        fetch('/simulate-load?cpu=' + cpu + '&memory=' + memory + '&duration=' + duration)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            resultEl.textContent = data.message;
+            resultEl.classList.add('result-success');
+        })
+        .catch(function() {
+            resultEl.textContent = 'Simulation failed. Please try again.';
+            resultEl.classList.add('result-error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Run Simulation';
         });
     }
 

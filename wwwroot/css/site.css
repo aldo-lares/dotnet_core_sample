@@ -160,6 +160,23 @@ body {
     cursor: not-allowed;
 }
 
+.card-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.card-input:focus {
+    outline: none;
+    border-color: #1d539d;
+    box-shadow: 0 0 0 2px rgba(29, 83, 157, 0.15);
+}
+
 .card-result {
     margin-top: 10px;
     font-size: 0.85rem;
