@@ -172,6 +172,18 @@
                 return;
             }
 
+            if (error && error.type === 'unexpected-success') {
+                resultEl.textContent = 'Unexpected success response from error endpoint.';
+                resultEl.classList.add('result-error');
+                return;
+            }
+
+            if (error && error.type === 'unexpected-status') {
+                resultEl.textContent = 'Unexpected status code returned by error endpoint.';
+                resultEl.classList.add('result-error');
+                return;
+            }
+
             resultEl.textContent = 'Request failed before reaching backend.';
             resultEl.classList.add('result-error');
         })

@@ -88,7 +88,7 @@ namespace pipelines_dotnet_core.Controllers
             try
             {
                 throw new InvalidOperationException(
-                    "Pampa - Dashboard Error en HomeController.TriggerError: excepción intencional para monitoreo en App Insights.");
+                    "Pampa - Dashboard Error in HomeController.TriggerError: intentional exception for App Insights monitoring.");
             }
             catch (Exception ex)
             {
