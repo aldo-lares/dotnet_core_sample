@@ -32,6 +32,8 @@ namespace pipelines_dotnet_core
             });
 
 
+            services.AddApplicationInsightsTelemetry();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 

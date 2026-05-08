@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.ApplicationInsights;
 using pipelines_dotnet_core.Models;
 
 namespace pipelines_dotnet_core.Controllers
@@ -28,6 +30,15 @@ namespace pipelines_dotnet_core.Controllers
 
         private static readonly Random _rng = new Random();
         private static readonly object _rngLock = new object();
+        private static readonly char[] _sessionChars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
+
+        private readonly TelemetryClient _telemetryClient;
+
+        public HomeController(TelemetryClient telemetryClient)
+        {
+            _telemetryClient = telemetryClient;
+        }
 
         public IActionResult Index()
         {
@@ -49,7 +60,34 @@ namespace pipelines_dotnet_core.Controllers
                 firstName = FirstNames[_rng.Next(FirstNames.Count)];
                 lastName = LastNames[_rng.Next(LastNames.Count)];
             }
-            return Json(new { fullName = $"{firstName} {lastName}" });
+
+            string fullName = $"{firstName} {lastName}";
+            string loginTime = DateTimeOffset.UtcNow.ToString("o");
+            string sessionId = GenerateSessionId();
+
+            _telemetryClient.TrackEvent("UserLogin", new Dictionary<string, string>
+            {
+                { "userName", fullName },
+                { "timestamp", loginTime },
+                { "sessionId", sessionId }
+            });
+
+            return Json(new { fullName, sessionId });
+        }
+
+        private static string GenerateSessionId()
+        {
+            var chars = new char[6];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                var bytes = new byte[6];
+                rng.GetBytes(bytes);
+                for (int i = 0; i < chars.Length; i++)
+                {
+                    chars[i] = _sessionChars[bytes[i] % _sessionChars.Length];
+                }
+            }
+            return new string(chars);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
