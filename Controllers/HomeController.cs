@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ApplicationInsights;
@@ -54,18 +55,15 @@ namespace pipelines_dotnet_core.Controllers
         public IActionResult Login()
         {
             string firstName, lastName;
-            string sessionId;
             lock (_rngLock)
             {
                 firstName = FirstNames[_rng.Next(FirstNames.Count)];
                 lastName = LastNames[_rng.Next(LastNames.Count)];
-                sessionId = new string(Enumerable.Range(0, 6)
-                    .Select(_ => _sessionChars[_rng.Next(_sessionChars.Length)])
-                    .ToArray());
             }
 
             string fullName = $"{firstName} {lastName}";
             string loginTime = DateTimeOffset.UtcNow.ToString("o");
+            string sessionId = GenerateSessionId();
 
             _telemetryClient.TrackEvent("UserLogin", new Dictionary<string, string>
             {
@@ -75,6 +73,21 @@ namespace pipelines_dotnet_core.Controllers
             });
 
             return Json(new { fullName, sessionId });
+        }
+
+        private static string GenerateSessionId()
+        {
+            var chars = new char[6];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                var bytes = new byte[6];
+                rng.GetBytes(bytes);
+                for (int i = 0; i < chars.Length; i++)
+                {
+                    chars[i] = _sessionChars[bytes[i] % _sessionChars.Length];
+                }
+            }
+            return new string(chars);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
