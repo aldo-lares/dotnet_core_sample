@@ -102,23 +102,31 @@ namespace pipelines_dotnet_core.Controllers
             [FromQuery] int memory = 100,
             [FromQuery] int duration = 30)
         {
+            cpu = Math.Max(0, Math.Min(100, cpu));
+            memory = Math.Max(1, Math.Min(4096, memory));
+            duration = Math.Max(1, Math.Min(300, duration));
+
             var cts = new System.Threading.CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(duration));
             var token = cts.Token;
 
-            int threadCount = Math.Max(1, Environment.ProcessorCount * cpu / 100);
+            int threadCount = Math.Max(1, (int)Math.Ceiling(Environment.ProcessorCount * cpu / 100.0));
             var cpuTasks = new Task[threadCount];
             for (int i = 0; i < threadCount; i++)
             {
                 cpuTasks[i] = Task.Run(() =>
                 {
-                    while (!token.IsCancellationRequested)
+                    try
                     {
-                        using (var sha = System.Security.Cryptography.SHA256.Create())
+                        while (!token.IsCancellationRequested)
                         {
-                            sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()));
+                            using (var sha = System.Security.Cryptography.SHA256.Create())
+                            {
+                                sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()));
+                            }
                         }
                     }
+                    catch (OperationCanceledException) { }
                 }, token);
             }
 
@@ -128,7 +136,11 @@ namespace pipelines_dotnet_core.Controllers
                 memoryBlocks.Add(new byte[1024 * 1024]);
             }
 
-            await Task.WhenAll(cpuTasks.Select(t => t.ContinueWith(_ => { }, TaskContinuationOptions.None)));
+            try
+            {
+                await Task.WhenAll(cpuTasks);
+            }
+            catch (OperationCanceledException) { }
 
             memoryBlocks.Clear();
             cts.Dispose();
