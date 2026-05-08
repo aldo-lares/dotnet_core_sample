@@ -81,6 +81,28 @@ namespace pipelines_dotnet_core.Controllers
             return Json(new { fullName, sessionId });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TriggerError()
+        {
+            try
+            {
+                throw new InvalidOperationException(
+                    "Pampa - Dashboard Error in HomeController.TriggerError: intentional exception for App Insights monitoring.");
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    { "location", "HomeController.TriggerError" },
+                    { "requestPath", HttpContext?.Request?.Path.Value ?? string.Empty },
+                    { "marker", "Pampa" }
+                });
+
+                return StatusCode(500);
+            }
+        }
+
         private static string GenerateSessionId()
         {
             var chars = new char[6];

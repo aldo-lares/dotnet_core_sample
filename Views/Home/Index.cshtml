@@ -15,6 +15,13 @@
         <div class="card-result"></div>
     </div>
 
+    <div class="dashboard-card">
+        <div class="card-title">Error</div>
+        <div class="card-description">Generate monitored backend exception</div>
+        <button class="card-btn" onclick="handleError(this)">Trigger Error</button>
+        <div class="card-result"></div>
+    </div>
+
     <!-- Cards 2–16: Placeholders -->
     <div class="dashboard-card">
         <div class="card-title">Reports</div>
@@ -137,10 +144,58 @@
         });
     }
 
+    function handleError(btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading…';
+        var card = btn.closest('.dashboard-card');
+        var resultEl = card.querySelector('.card-result');
+        resultEl.className = 'card-result';
+
+        fetch('/Home/TriggerError', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgeryToken() }
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                var error = new Error('Request failed');
+                error.type = response.status >= 500 ? 'backend-error' : 'unexpected-status';
+                throw error;
+            }
+            var unexpected = new Error('TriggerError endpoint returned 2xx status code instead of expected error response');
+            unexpected.type = 'unexpected-success';
+            throw unexpected;
+        })
+        .catch(function(error) {
+            if (error && error.type === 'backend-error') {
+                resultEl.textContent = 'Error generated and sent to backend telemetry.';
+                resultEl.classList.add('result-error');
+                return;
+            }
+
+            if (error && error.type === 'unexpected-success') {
+                resultEl.textContent = 'Unexpected success response from error endpoint.';
+                resultEl.classList.add('result-error');
+                return;
+            }
+
+            if (error && error.type === 'unexpected-status') {
+                resultEl.textContent = 'Unexpected status code returned by error endpoint.';
+                resultEl.classList.add('result-error');
+                return;
+            }
+
+            resultEl.textContent = 'Request failed before reaching backend.';
+            resultEl.classList.add('result-error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Trigger Error';
+        });
+    }
+
     function getAntiForgeryToken() {
         var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenEl ? tokenEl.value : '';
     }
 </script>
 }
-
