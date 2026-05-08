@@ -1,40 +1,146 @@
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="main-container">
-    <div class="cloud-image">
-        <img src="~/images/successCloudNew.svg" />
+<div class="dashboard-header">
+    <h1>Control Panel</h1>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Card 1: Login -->
+    <div class="dashboard-card">
+        <div class="card-title">Login</div>
+        <div class="card-description">Simulate user login</div>
+        <button class="card-btn" onclick="handleLogin(this)">Start Session</button>
+        <div class="card-result"></div>
     </div>
-    <div class="content">
-        <div class="tweet-container">
-            <a href="http://twitter.com/intent/tweet/?text=I%20just%20created%20a%20new%20ASP.net%20website%20on%20Azure%20using%20Azure%20DevOps%20Project&hashtags=AzureDevOpsProject%2CVSTS%20%40Azure%20%40VSTS">
-                <img src="~/images/tweetThis.svg" />
-            </a>
-        </div>
-        <div class="content-body">
-            <div class="success-text">Deploying to Azure with GitHub Actions</div>
-            <div class="description line-1"> GitHub Action Workflow has been successfully setup</div>
-            <div class="description line-2"> Your ASP.NET Core app is live on Azure Web Apps</div>
-        </div>
+
+    <!-- Cards 2–16: Placeholders -->
+    <div class="dashboard-card">
+        <div class="card-title">Reports</div>
+        <div class="card-description">Generate system reports</div>
+        <button class="card-btn" disabled>Run Report</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Users</div>
+        <div class="card-description">Manage user accounts</div>
+        <button class="card-btn" disabled>Manage</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Settings</div>
+        <div class="card-description">Configure system settings</div>
+        <button class="card-btn" disabled>Configure</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Analytics</div>
+        <div class="card-description">View usage analytics</div>
+        <button class="card-btn" disabled>View</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Notifications</div>
+        <div class="card-description">Send push notifications</div>
+        <button class="card-btn" disabled>Send</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Backup</div>
+        <div class="card-description">Backup system data</div>
+        <button class="card-btn" disabled>Backup</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Logs</div>
+        <div class="card-description">View system logs</div>
+        <button class="card-btn" disabled>View Logs</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Permissions</div>
+        <div class="card-description">Control access permissions</div>
+        <button class="card-btn" disabled>Manage</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Database</div>
+        <div class="card-description">Manage database connections</div>
+        <button class="card-btn" disabled>Connect</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">API Keys</div>
+        <div class="card-description">Generate or revoke API keys</div>
+        <button class="card-btn" disabled>Generate</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Scheduler</div>
+        <div class="card-description">Schedule automated tasks</div>
+        <button class="card-btn" disabled>Schedule</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Audit</div>
+        <div class="card-description">Review audit trail</div>
+        <button class="card-btn" disabled>Audit</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Monitor</div>
+        <div class="card-description">Monitor system health</div>
+        <button class="card-btn" disabled>Monitor</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Support</div>
+        <div class="card-description">Open a support ticket</div>
+        <button class="card-btn" disabled>Contact</button>
+        <div class="card-result"></div>
+    </div>
+    <div class="dashboard-card">
+        <div class="card-title">Logout</div>
+        <div class="card-description">End the current session</div>
+        <button class="card-btn" disabled>End Session</button>
+        <div class="card-result"></div>
     </div>
 </div>
-<div class="row">
-    <div class="col-md-4">
-        <h2>Get started right away </h2>
-        <p>
-            Clone your code repository and start developing your application on IDE of your choice
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?linkid=862409">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Continuous Delivery</h2>
-        <p>View your Actions Workflow and customize it as per your needs</p>
-        <p><a class="btn btn-default" href="https://help.github.com/en/categories/automating-your-workflow-with-github-actions">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>GitHub Actions</h2>
-        <p>Learn more about all you can do with GitHub Actions by visiting the documentation</p>
-        <p><a class="btn btn-default" href="https://github.com/features/actions/">Learn more &raquo;</a></p>
-    </div>
-</div>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+    function handleLogin(btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading…';
+        var card = btn.closest('.dashboard-card');
+        var resultEl = card.querySelector('.card-result');
+        resultEl.className = 'card-result';
+
+        fetch('/Home/Login', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgeryToken() }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            resultEl.textContent = data.fullName + ' has logged in';
+            resultEl.classList.add('result-success');
+        })
+        .catch(function() {
+            resultEl.textContent = 'Login failed. Please try again.';
+            resultEl.classList.add('result-error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Start Session';
+        });
+    }
+
+    function getAntiForgeryToken() {
+        var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenEl ? tokenEl.value : '';
+    }
+</script>
+}
+
