@@ -35,6 +35,9 @@ namespace pipelines_dotnet_core.Controllers
 
         private readonly TelemetryClient _telemetryClient;
 
+        private const string EnvInstanceId = "WEBSITE_INSTANCE_ID";
+        private const string EnvSiteName = "WEBSITE_SITE_NAME";
+
         public HomeController(TelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient;
@@ -42,10 +45,9 @@ namespace pipelines_dotnet_core.Controllers
 
         public IActionResult Index()
         {
-            var instanceName = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID")
-                ?? Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME")
+            ViewData["InstanceName"] = Environment.GetEnvironmentVariable(EnvInstanceId)
+                ?? Environment.GetEnvironmentVariable(EnvSiteName)
                 ?? "localhost";
-            ViewData["InstanceName"] = instanceName;
             return View();
         }
 
