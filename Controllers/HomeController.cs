@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.ApplicationInsights;
 using pipelines_dotnet_core.Models;
 
 namespace pipelines_dotnet_core.Controllers
@@ -28,6 +29,15 @@ namespace pipelines_dotnet_core.Controllers
 
         private static readonly Random _rng = new Random();
         private static readonly object _rngLock = new object();
+        private static readonly char[] _sessionChars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
+
+        private readonly TelemetryClient _telemetryClient;
+
+        public HomeController(TelemetryClient telemetryClient)
+        {
+            _telemetryClient = telemetryClient;
+        }
 
         public IActionResult Index()
         {
@@ -44,12 +54,27 @@ namespace pipelines_dotnet_core.Controllers
         public IActionResult Login()
         {
             string firstName, lastName;
+            string sessionId;
             lock (_rngLock)
             {
                 firstName = FirstNames[_rng.Next(FirstNames.Count)];
                 lastName = LastNames[_rng.Next(LastNames.Count)];
+                sessionId = new string(Enumerable.Range(0, 6)
+                    .Select(_ => _sessionChars[_rng.Next(_sessionChars.Length)])
+                    .ToArray());
             }
-            return Json(new { fullName = $"{firstName} {lastName}" });
+
+            string fullName = $"{firstName} {lastName}";
+            string loginTime = DateTimeOffset.UtcNow.ToString("o");
+
+            _telemetryClient.TrackEvent("UserLogin", new Dictionary<string, string>
+            {
+                { "userName", fullName },
+                { "timestamp", loginTime },
+                { "sessionId", sessionId }
+            });
+
+            return Json(new { fullName, sessionId });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
