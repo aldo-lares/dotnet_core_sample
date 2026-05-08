@@ -41,6 +41,8 @@ namespace pipelines_dotnet_core.Controllers
                 SlidingExpiration = TimeSpan.FromHours(24)
             };
 
+        private static readonly object _sessionLock = new object();
+
         private const string ActiveSessionsKey = "active_sessions";
 
         private readonly TelemetryClient _telemetryClient;
@@ -90,11 +92,16 @@ namespace pipelines_dotnet_core.Controllers
                 { "sessionId", sessionId }
             });
 
-            var sessions = GetActiveSessions();
-            sessions.Add(new ActiveSession { FullName = fullName, SessionId = sessionId });
-            SaveActiveSessions(sessions);
+            int activeCount;
+            lock (_sessionLock)
+            {
+                var sessions = GetActiveSessions();
+                sessions.Add(new ActiveSession { FullName = fullName, SessionId = sessionId });
+                SaveActiveSessions(sessions);
+                activeCount = sessions.Count;
+            }
 
-            return Json(new { fullName, sessionId });
+            return Json(new { fullName, sessionId, activeCount });
         }
 
         private static string GenerateSessionId()
@@ -116,21 +123,24 @@ namespace pipelines_dotnet_core.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
         {
-            var sessions = GetActiveSessions();
-            if (sessions.Count == 0)
+            ActiveSession user;
+            int activeCount;
+            lock (_sessionLock)
             {
-                return Json(new { success = false, message = "No active user sessions." });
-            }
+                var sessions = GetActiveSessions();
+                if (sessions.Count == 0)
+                {
+                    return Json(new { success = false, message = "No active user sessions." });
+                }
 
-            int idx;
-            lock (_rngLock)
-            {
-                idx = _rng.Next(sessions.Count);
-            }
+                int idx;
+                lock (_rngLock) { idx = _rng.Next(sessions.Count); }
 
-            var user = sessions[idx];
-            sessions.RemoveAt(idx);
-            SaveActiveSessions(sessions);
+                user = sessions[idx];
+                sessions.RemoveAt(idx);
+                SaveActiveSessions(sessions);
+                activeCount = sessions.Count;
+            }
 
             _telemetryClient.TrackEvent("UserLogout", new Dictionary<string, string>
             {
@@ -139,7 +149,7 @@ namespace pipelines_dotnet_core.Controllers
                 { "sessionId", user.SessionId }
             });
 
-            return Json(new { success = true, fullName = user.FullName });
+            return Json(new { success = true, fullName = user.FullName, activeCount });
         }
 
         private List<ActiveSession> GetActiveSessions()

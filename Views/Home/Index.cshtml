@@ -13,6 +13,7 @@
         <div class="card-description">Simulate user login</div>
         <button class="card-btn" onclick="handleLogin(this)">Start Session</button>
         <div class="card-result"></div>
+        <div class="card-count"></div>
     </div>
 
     <!-- Card 2: Logout -->
@@ -21,6 +22,7 @@
         <div class="card-description">End an active user session</div>
         <button class="card-btn" onclick="handleLogout(this)">End Session</button>
         <div class="card-result"></div>
+        <div class="card-count"></div>
     </div>
     <div class="dashboard-card">
         <div class="card-title">Users</div>
@@ -126,6 +128,9 @@
         .then(function(data) {
             resultEl.textContent = data.fullName + ' has logged in';
             resultEl.classList.add('result-success');
+            if (typeof data.activeCount === 'number') {
+                updateActiveCount(data.activeCount);
+            }
         })
         .catch(function() {
             resultEl.textContent = 'Login failed. Please try again.';
@@ -153,6 +158,7 @@
             if (data.success) {
                 resultEl.textContent = data.fullName + ' has logged out';
                 resultEl.classList.add('result-success');
+                updateActiveCount(data.activeCount);
             } else {
                 resultEl.textContent = data.message;
                 resultEl.classList.add('result-error');
@@ -165,6 +171,13 @@
         .finally(function() {
             btn.disabled = false;
             btn.textContent = 'End Session';
+        });
+    }
+
+    function updateActiveCount(count) {
+        var label = count === 1 ? '1 active session' : count + ' active sessions';
+        document.querySelectorAll('.card-count').forEach(function(el) {
+            el.textContent = label;
         });
     }
 
