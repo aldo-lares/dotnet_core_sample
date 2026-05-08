@@ -161,7 +161,7 @@
                 error.type = response.status >= 500 ? 'backend-error' : 'unexpected-status';
                 throw error;
             }
-            var unexpected = new Error('TriggerError endpoint returned success unexpectedly');
+            var unexpected = new Error('TriggerError endpoint returned 2xx status code instead of expected error response');
             unexpected.type = 'unexpected-success';
             throw unexpected;
         })
