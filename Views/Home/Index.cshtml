@@ -15,11 +15,11 @@
         <div class="card-result"></div>
     </div>
 
-    <!-- Cards 2–16: Placeholders -->
+    <!-- Card 2: Logout -->
     <div class="dashboard-card">
-        <div class="card-title">Reports</div>
-        <div class="card-description">Generate system reports</div>
-        <button class="card-btn" disabled>Run Report</button>
+        <div class="card-title">Logout</div>
+        <div class="card-description">End an active user session</div>
+        <button class="card-btn" onclick="handleLogout(this)">End Session</button>
         <div class="card-result"></div>
     </div>
     <div class="dashboard-card">
@@ -101,9 +101,9 @@
         <div class="card-result"></div>
     </div>
     <div class="dashboard-card">
-        <div class="card-title">Logout</div>
-        <div class="card-description">End the current session</div>
-        <button class="card-btn" disabled>End Session</button>
+        <div class="card-title">End of Panel</div>
+        <div class="card-description">No additional actions</div>
+        <button class="card-btn" disabled>—</button>
         <div class="card-result"></div>
     </div>
 </div>
@@ -134,6 +134,37 @@
         .finally(function() {
             btn.disabled = false;
             btn.textContent = 'Start Session';
+        });
+    }
+
+    function handleLogout(btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading…';
+        var card = btn.closest('.dashboard-card');
+        var resultEl = card.querySelector('.card-result');
+        resultEl.className = 'card-result';
+
+        fetch('/Home/Logout', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgeryToken() }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                resultEl.textContent = data.fullName + ' has logged out';
+                resultEl.classList.add('result-success');
+            } else {
+                resultEl.textContent = data.message;
+                resultEl.classList.add('result-error');
+            }
+        })
+        .catch(function() {
+            resultEl.textContent = 'Network error occurred. Please check your connection and try again.';
+            resultEl.classList.add('result-error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'End Session';
         });
     }
 

@@ -34,6 +34,11 @@ namespace pipelines_dotnet_core
 
             services.AddApplicationInsightsTelemetry();
 
+            // For multi-instance Azure App Service deployments, replace AddDistributedMemoryCache
+            // with AddStackExchangeRedisCache so all instances share the same session store.
+            // AddDistributedMemoryCache is per-process and not suitable for production multi-instance use.
+            services.AddDistributedMemoryCache();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 

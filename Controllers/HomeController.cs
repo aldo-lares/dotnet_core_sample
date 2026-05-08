@@ -6,6 +6,8 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using pipelines_dotnet_core.Models;
 
 namespace pipelines_dotnet_core.Controllers
@@ -33,14 +35,24 @@ namespace pipelines_dotnet_core.Controllers
         private static readonly char[] _sessionChars =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
 
+        private static readonly DistributedCacheEntryOptions _cacheOptions =
+            new DistributedCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromHours(24)
+            };
+
+        private const string ActiveSessionsKey = "active_sessions";
+
         private readonly TelemetryClient _telemetryClient;
+        private readonly IDistributedCache _cache;
 
         private const string EnvInstanceId = "WEBSITE_INSTANCE_ID";
         private const string EnvSiteName = "WEBSITE_SITE_NAME";
 
-        public HomeController(TelemetryClient telemetryClient)
+        public HomeController(TelemetryClient telemetryClient, IDistributedCache cache)
         {
             _telemetryClient = telemetryClient;
+            _cache = cache;
         }
 
         public IActionResult Index()
@@ -78,6 +90,10 @@ namespace pipelines_dotnet_core.Controllers
                 { "sessionId", sessionId }
             });
 
+            var sessions = GetActiveSessions();
+            sessions.Add(new ActiveSession { FullName = fullName, SessionId = sessionId });
+            SaveActiveSessions(sessions);
+
             return Json(new { fullName, sessionId });
         }
 
@@ -94,6 +110,49 @@ namespace pipelines_dotnet_core.Controllers
                 }
             }
             return new string(chars);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Logout()
+        {
+            var sessions = GetActiveSessions();
+            if (sessions.Count == 0)
+            {
+                return Json(new { success = false, message = "No active user sessions." });
+            }
+
+            int idx;
+            lock (_rngLock)
+            {
+                idx = _rng.Next(sessions.Count);
+            }
+
+            var user = sessions[idx];
+            sessions.RemoveAt(idx);
+            SaveActiveSessions(sessions);
+
+            _telemetryClient.TrackEvent("UserLogout", new Dictionary<string, string>
+            {
+                { "userName", user.FullName },
+                { "timestamp", DateTimeOffset.UtcNow.ToString("o") },
+                { "sessionId", user.SessionId }
+            });
+
+            return Json(new { success = true, fullName = user.FullName });
+        }
+
+        private List<ActiveSession> GetActiveSessions()
+        {
+            var json = _cache.GetString(ActiveSessionsKey);
+            if (string.IsNullOrEmpty(json))
+                return new List<ActiveSession>();
+            return JsonConvert.DeserializeObject<List<ActiveSession>>(json) ?? new List<ActiveSession>();
+        }
+
+        private void SaveActiveSessions(List<ActiveSession> sessions)
+        {
+            _cache.SetString(ActiveSessionsKey, JsonConvert.SerializeObject(sessions), _cacheOptions);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
