@@ -81,6 +81,14 @@ namespace pipelines_dotnet_core.Controllers
             return Json(new { fullName, sessionId });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TriggerError()
+        {
+            throw new InvalidOperationException(
+                "Pampa - Dashboard Error en HomeController.TriggerError: excepción intencional para monitoreo en App Insights.");
+        }
+
         private static string GenerateSessionId()
         {
             var chars = new char[6];

@@ -15,6 +15,13 @@
         <div class="card-result"></div>
     </div>
 
+    <div class="dashboard-card">
+        <div class="card-title">Error</div>
+        <div class="card-description">Generate monitored backend exception</div>
+        <button class="card-btn" onclick="handleError(this)">Trigger Error</button>
+        <div class="card-result"></div>
+    </div>
+
     <!-- Cards 2–16: Placeholders -->
     <div class="dashboard-card">
         <div class="card-title">Reports</div>
@@ -137,10 +144,40 @@
         });
     }
 
+    function handleError(btn) {
+        btn.disabled = true;
+        btn.textContent = 'Loading…';
+        var card = btn.closest('.dashboard-card');
+        var resultEl = card.querySelector('.card-result');
+        resultEl.className = 'card-result';
+
+        fetch('/Home/TriggerError', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgeryToken() }
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Server error');
+            }
+            return response.text();
+        })
+        .then(function() {
+            resultEl.textContent = 'Error endpoint returned successfully.';
+            resultEl.classList.add('result-success');
+        })
+        .catch(function() {
+            resultEl.textContent = 'Error generated and sent to backend telemetry.';
+            resultEl.classList.add('result-error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Trigger Error';
+        });
+    }
+
     function getAntiForgeryToken() {
         var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenEl ? tokenEl.value : '';
     }
 </script>
 }
-
