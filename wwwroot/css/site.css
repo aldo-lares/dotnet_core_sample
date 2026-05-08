@@ -73,3 +73,104 @@ body {
 .col-md-4 {
     color: black;
 }
+
+/* ── Dashboard ─────────────────────────────────────────── */
+
+.dashboard-header {
+    text-align: center;
+    margin: 24px 0 16px;
+    font-size: 1.8rem;
+    color: #1d539d;
+    font-weight: 700;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 0 16px 40px;
+}
+
+@media (max-width: 992px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 420px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 20px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    transition: box-shadow 0.2s ease;
+    min-height: 160px;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1d539d;
+    margin-bottom: 6px;
+}
+
+.card-description {
+    font-size: 0.875rem;
+    color: #6c757d;
+    flex-grow: 1;
+    margin-bottom: 14px;
+}
+
+.card-btn {
+    align-self: flex-start;
+    background-color: #1d539d;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.card-btn:hover:not(:disabled) {
+    background-color: #163e7a;
+}
+
+.card-btn:disabled {
+    background-color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.card-result {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-height: 1.2em;
+}
+
+.result-success {
+    color: #198754;
+}
+
+.result-error {
+    color: #dc3545;
+}
