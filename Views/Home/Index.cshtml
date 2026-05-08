@@ -157,7 +157,7 @@
         })
         .then(function(response) {
             if (!response.ok) {
-                throw new Error('Server error');
+                throw { type: response.status >= 500 ? 'backend-error' : 'unexpected-status' };
             }
             return response.text();
         })
@@ -165,8 +165,14 @@
             resultEl.textContent = 'Error endpoint returned successfully.';
             resultEl.classList.add('result-success');
         })
-        .catch(function() {
-            resultEl.textContent = 'Error generated and sent to backend telemetry.';
+        .catch(function(error) {
+            if (error && error.type === 'backend-error') {
+                resultEl.textContent = 'Error generated and sent to backend telemetry.';
+                resultEl.classList.add('result-error');
+                return;
+            }
+
+            resultEl.textContent = 'Request failed before reaching backend.';
             resultEl.classList.add('result-error');
         })
         .finally(function() {
